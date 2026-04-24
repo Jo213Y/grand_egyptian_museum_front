@@ -1,0 +1,95 @@
+Index: lib/widgets/dropdown_field.dart
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/lib/widgets/dropdown_field.dart b/lib/widgets/dropdown_field.dart
+--- a/lib/widgets/dropdown_field.dart	(date 1777030883439)
++++ b/lib/widgets/dropdown_field.dart
+@@ -23,52 +23,43 @@
+       crossAxisAlignment: CrossAxisAlignment.start,
+       children: [
+         Text(label, style: AppTextStyles.label),
+-        const SizedBox(height: 8),
+-
+-        Container(
+-          decoration: BoxDecoration(
+-            color: AppColors.inputFill,
+-            borderRadius: BorderRadius.circular(18),
++        const SizedBox(height: 6),
+ 
+-            // 👇 shadow زي input history field
+-            boxShadow: [
+-              BoxShadow(
+-                color: Colors.black.withOpacity(0.05),
+-                blurRadius: 10,
+-                offset: const Offset(0, 4),
+-              ),
+-            ],
+-
+-            border: Border.all(
+-              color: AppColors.primaryLight.withOpacity(0.4),
+-            ),
+-          ),
+-
+-          child: DropdownButtonFormField<T>(
+-            value: value,
+-            items: items,
+-            onChanged: onChanged,
+-            validator: validator,
+-
+-            dropdownColor: AppColors.inputFill,
+-
+-            // 👇 نفس ستايل الـ input field
+-            style: const TextStyle(
+-              color: Colors.grey,
+-              fontWeight: FontWeight.w600,
+-            ),
++        DropdownButtonFormField<T>(
++          value: value,
++          items: items,
++          onChanged: onChanged,
++          validator: validator,
++          dropdownColor: AppColors.inputFill,
++          style: const TextStyle(
++            color: Colors.black,
++            fontWeight: FontWeight.w600,
++          ),
+ 
+-            decoration: const InputDecoration(
+-              border: InputBorder.none,
+-              contentPadding: EdgeInsets.symmetric(
+-                horizontal: 16,
+-                vertical: 14,
+-              ),
+-
+-              hintStyle: TextStyle(
+-                color: Colors.grey,
+-              ),
++          decoration: InputDecoration(
++            hintText: label,
++            // 👇 لون الهنت فقط
++            hintStyle: const TextStyle(
++              color: AppColors.black,
++            ),
++            filled: true,
++            fillColor: AppColors.inputFill,
++            contentPadding: const EdgeInsets.symmetric(
++              horizontal: 16,
++              vertical: 14,
++            ),
++            border: OutlineInputBorder(
++              borderRadius: BorderRadius.circular(10),
++              borderSide: const BorderSide(color: AppColors.primaryLight),
++            ),
++            enabledBorder: OutlineInputBorder(
++              borderRadius: BorderRadius.circular(10),
++              borderSide: const BorderSide(color: AppColors.primaryLight),
+             ),
++            focusedBorder: OutlineInputBorder(
++              borderRadius: BorderRadius.circular(10),
++              borderSide: const BorderSide(color: AppColors.primary, width: 2),
++            ),
+           ),
+         ),
+       ],
