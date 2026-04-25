@@ -56,35 +56,95 @@ class _UsersTabState extends State<UsersTab> {
   Future<void> _toggleBlock(Map<String, dynamic> u) async {
     final id      = u['id'];
     final isBlock = (u['role'] ?? '').toString().toUpperCase() == 'BLOCK';
-    final action  = isBlock ? 'Unblock' : 'Block';
 
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A0A00),
-        title: Text('$action User', style: const TextStyle(color: AppColors.gold)),
-        content: Text(
-          'Are you sure you want to $action "${u['fullName']}"?',
-          style: const TextStyle(color: Colors.white70),
+    if (isBlock) {
+      // ── Unblock: simple confirm ──────────────────────────
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          title: const Text('Unblock User', style: TextStyle(color: AppColors.gold)),
+          content: Text('Unblock "${u['fullName']}"?',
+              style: const TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+            TextButton(onPressed: () => Navigator.pop(context, true),
+                child: const Text('Unblock', style: TextStyle(color: Colors.green))),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
-          TextButton(onPressed: () => Navigator.pop(context, true),
-              child: Text(action, style: const TextStyle(color: AppColors.gold))),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
+      );
+      if (confirm != true) return;
+    } else {
+      // ── Block: ask for reason first ──────────────────────
+      final reasonCtrl = TextEditingController();
+      final reason = await showDialog<String>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          title: const Text('Block User', style: TextStyle(color: Colors.redAccent)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Block "${u['fullName']}"?',
+                  style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 14),
+              const Text('Reason for blocking:',
+                  style: TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: reasonCtrl,
+                autofocus: true,
+                maxLines: 2,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'e.g. Violation of terms...',
+                  hintStyle: const TextStyle(color: Colors.white30),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.redAccent),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, null),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+            TextButton(
+              onPressed: () {
+                final r = reasonCtrl.text.trim();
+                if (r.isEmpty) return; // must enter reason
+                Navigator.pop(context, r);
+              },
+              child: const Text('Block', style: TextStyle(color: Colors.redAccent)),
+            ),
+          ],
+        ),
+      );
+      if (reason == null) return;
+    }
 
     try {
       await ApiService.toggleBlockUser(id);
+      // move to blocked tab automatically when blocking
+      if (!isBlock && mounted) setState(() => tab = 2);
       AppEvents.emit(AppEventTypes.usersUpdated);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed: \$e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -110,9 +170,9 @@ class _UsersTabState extends State<UsersTab> {
             children: [
               _toggleBtn('Users',   Icons.person,               users.length,   tab == 0, () => setState(() => tab = 0)),
               const SizedBox(width: 8),
-              _toggleBtn('Blocked', Icons.block,                blocked.length, tab == 2, () => setState(() => tab = 2)),
-              const SizedBox(width: 8),
               _toggleBtn('Admins',  Icons.admin_panel_settings, admins.length,  tab == 1, () => setState(() => tab = 1)),
+              const SizedBox(width: 8),
+              _toggleBtn('Blocked', Icons.block,                blocked.length, tab == 2, () => setState(() => tab = 2)),
             ],
           ),
         ),
