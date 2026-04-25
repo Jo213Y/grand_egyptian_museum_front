@@ -255,6 +255,29 @@ class ApiService {
     }
   }
 
+  static Future<void> addAdmin({
+    required String fullName,
+    required String email,
+    required String password,
+    String? ssn,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/users'),
+      headers: _headers,
+      body: jsonEncode({
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        if (ssn != null) 'ssn': ssn,
+      }),
+    ).timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(res.body);
+    if (res.statusCode != 200) {
+      throw Exception(data['message'] ?? 'Failed to add admin');
+    }
+  }
+
   static Future<void> deleteUser(int userId, String reason) async {
     final res = await http.delete(
       Uri.parse('$baseUrl/admin/users/$userId'),
