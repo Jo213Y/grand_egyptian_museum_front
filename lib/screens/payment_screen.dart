@@ -84,15 +84,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GemAppBar(
+      appBar: const GemAppBar(
         activePage: 'Ticket',
-        onHome: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-                (_) => false),
-        onTicket: () {},
-        onHalls: () => Navigator.pop(context),
-        onAbout: () {},
       ),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,

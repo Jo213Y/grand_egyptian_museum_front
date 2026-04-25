@@ -70,8 +70,9 @@ class ApiService {
         'email': email,
         'password': password,
         'phone': phone,
-        'country': country,
-        'nationalId': nationalId,
+        'nationality': country,
+        'userType': country == 'Egypt' ? 'EGYPTIAN' : (country != null ? 'FOREIGN' : null),
+        'ssn': nationalId,
         'passportNumber': passportNumber,
       }),
     ).timeout(const Duration(seconds: 15));

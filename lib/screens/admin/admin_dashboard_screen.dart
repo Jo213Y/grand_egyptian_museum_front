@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
 import 'package:grand_egyptian_museum/widgets/common_widgets.dart';
+import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
 
 import '../../services/api_service.dart';
 import '../../theme/app_theme.dart';
@@ -44,19 +45,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GemAppBar(
-        activePage: 'Admin',
-        onAdmin: () {},
-        onHome: () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomeScreen())),
-        onTicket: () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const BookingScreen())),
-        onHalls: () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HallsScreen())),
-        onAbout: () {},
-        onLogout: () => Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const SignInScreen())),
+      appBar: const GemAppBar(
+        activePage: 'Dashboard',
       ),
+      endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,
         child: SafeArea(

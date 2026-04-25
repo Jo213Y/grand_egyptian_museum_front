@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
+import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/common_widgets.dart';
@@ -71,31 +72,10 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: GemAppBar(
+      appBar: const GemAppBar(
         activePage: 'Ticket',
-        onAdmin: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(
-                builder: (_) => const AdminDashboardScreen()),
-                (_) => false),
-        onHome: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-                (_) => false),
-        onTicket: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const BookingScreen()),
-                (_) => false),
-        onHalls: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const HallsScreen()),
-                (_) => false),
-        onAbout: () {},
-        onLogout: () => Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const SignInScreen()),
-                (_) => false),
       ),
+      endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,
         child: SafeArea(

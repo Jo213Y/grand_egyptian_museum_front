@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
+import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
@@ -37,47 +38,9 @@ class HomeScreen extends StatelessWidget {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         // ── Fixed AppBar ────────────────────────────────────────
-        appBar: GemAppBar(activePage: 'Home' ,
-          onAdmin: () =>Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()), (_) => false),
-          onHome: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()), (_) => false),
-          onTicket: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const BookingScreen()), (_) => false),
-          onHalls: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const HallsScreen()), (_) => false),
-          onAbout: () =>{},
-          onLogout: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const SignInScreen()), (_) => false),
-
+        appBar: const GemAppBar(activePage: 'Home' ,
         ),
-        endDrawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(color: Colors.black87),
-                child: Image.asset(AppAssets.logoGold, width: 80, height: 80),
-              ),
-              _drawerItem('Home', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const HomeScreen()), (_) => false); }),
-              _drawerItem('Ticket', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const BookingScreen()), (_) => false); }),
-              _drawerItem('Halls', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const HallsScreen()), (_) => false); }),
-              _drawerItem('About', onTap: () {}),
-              _drawerItem('Logout', onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (_) => const SignInScreen()), (_) => false);
-              }),
-              if (ApiService.isAdmin)
-                _drawerItem('Admin', onTap: () {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (_) => const AdminDashboardScreen()), (_) => false);
-                }),
-            ],
-          ),
-        ),
+        endDrawer: const AppDrawer(),
         body: GemBackground(
           imageAsset: AppAssets.bgMuseum,
           child: SafeArea(
