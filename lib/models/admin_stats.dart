@@ -68,23 +68,5 @@ class AdminStats {
     );
   }
 
-  // Demo
-  static AdminStats demo() => const AdminStats(
-    totalUsers: 100,
-    totalBookings: 200,
-    confirmedBookings: 180,
-    cancelledBookings: 20,
-    totalRevenue: 5000,
-    totalTickets: 200,
-    ticketsByType: {'ADULT': 120, 'CHILD': 50, 'SENIOR': 30},
-    bookingsByHall: {},
-    revenueByType: {},
-    dailySales: {
-      '2026-04-20': 3,
-      '2026-04-21': 6,
-      '2026-04-22': 5,
-      '2026-04-23': 10,
-      '2026-04-24': 7,
-    },
-  );
+
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/common_widgets.dart';
@@ -19,6 +20,16 @@ class HomeScreen extends StatelessWidget {
       Navigator.push(ctx, MaterialPageRoute(builder: (_) => const HallsScreen()));
   void _goTicket(BuildContext ctx) =>
       Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BookingScreen()));
+
+  Future<void> _openLocation() async {
+    final Uri url = Uri.parse(
+      'https://maps.app.goo.gl/vPn3nwWhaMcgvAv67',
+    );
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw 'Could not open map';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -243,15 +254,22 @@ class HomeScreen extends StatelessWidget {
             textAlign: TextAlign.center),
         const SizedBox(height: 16),
         // Actual map from Figma asset (shows GEM location)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            AppAssets.mapLocation,
-            width: double.infinity, height: 220, fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => GemNetworkImage(
-              AppAssets.mapLocationUrl,
-              width: double.infinity, height: 220, fit: BoxFit.cover,
-              borderRadius: BorderRadius.circular(16),
+        GestureDetector(
+          onTap: () => _openLocation(),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              AppAssets.mapLocation,
+              width: double.infinity,
+              height: 220,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => GemNetworkImage(
+                AppAssets.mapLocationUrl,
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),
@@ -278,6 +296,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
 
 class _HoursRow extends StatelessWidget {
   final String label;
