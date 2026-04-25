@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
@@ -9,6 +10,7 @@ import '../utils/app_assets.dart';
 import '../models/ticket_type.dart';
 import '../models/selected_ticket.dart';
 import '../services/api_service.dart';
+import '../utils/app_events.dart';
 import '../widgets/input_field.dart';
 import 'home_screen.dart';
 
@@ -60,6 +62,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           'securityCode':   _cvvCtrl.text,
         },
       );
+      AppEvents.emit(AppEventTypes.statsUpdated); // 🔔 update dashboard
     } catch (_) {
       // continue to DoneScreen even on error
     }
@@ -87,6 +90,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appBar: const GemAppBar(
         activePage: 'Ticket',
       ),
+      endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,
         child: SafeArea(

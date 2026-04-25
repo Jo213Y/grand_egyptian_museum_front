@@ -27,13 +27,15 @@ class AdminStats {
   });
 
   factory AdminStats.fromJson(Map<String, dynamic> j) {
-    final tickets = Map<String, int>.from(
-      (j['ticketsByType'] ?? {}).map(
-            (k, v) => MapEntry(k.toString(), (v as num).toInt()),
-      ),
+    final ticketsRaw = j['ticketsByType'] as Map? ?? {};
+    final tickets = Map<String, int>.fromEntries(
+      ticketsRaw.entries.map((e) => MapEntry(
+        e.key.toString().toUpperCase(),
+        (e.value as num).toInt(),
+      )),
     );
 
-    final total = tickets.values.fold(0, (a, b) => a + b);
+    final total = ((j['totalTickets'] ?? tickets.values.fold(0, (a, b) => a + b)) as num).toInt();
 
     final bookingsByHall = Map<String, int>.from(
       (j['bookingsByHall'] ?? {}).map(
@@ -55,10 +57,10 @@ class AdminStats {
     );
 
     return AdminStats(
-      totalUsers: (j['totalUsers'] ?? 0),
-      totalBookings: (j['totalBookings'] ?? 0),
-      confirmedBookings: (j['confirmedBookings'] ?? 0),
-      cancelledBookings: (j['cancelledBookings'] ?? 0),
+      totalUsers: ((j['totalUsers'] ?? 0) as num).toInt(),
+      totalBookings: ((j['totalBookings'] ?? 0) as num).toInt(),
+      confirmedBookings: ((j['confirmedBookings'] ?? 0) as num).toInt(),
+      cancelledBookings: ((j['cancelledBookings'] ?? 0) as num).toInt(),
       totalRevenue: (j['totalRevenue'] ?? 0).toDouble(),
       totalTickets: total,
       ticketsByType: tickets,

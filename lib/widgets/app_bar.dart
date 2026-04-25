@@ -32,11 +32,11 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
+    final isMobile = screenWidth < 930;
 
     if (isMobile) {
       return AppBar(
-        backgroundColor: Colors.black.withOpacity(0.75),
+        backgroundColor: Colors.black.withValues(alpha: 0.75),
         title: GestureDetector(
           onTap: () => _go(context, const HomeScreen()),
           child: Image.asset(
@@ -61,7 +61,7 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Container(
       height: 80,
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.75),
+        color: Colors.black.withValues(alpha: 0.75),
         border: const Border(
           bottom: BorderSide(color: AppColors.primaryLight, width: 0.5),
         ),
@@ -102,22 +102,53 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
           const Spacer(),
 
           if (ApiService.isAdmin)
-            _navItem(context, 'Dashboard', activePage == 'Dashboard',
-                    () => _go(context, const AdminDashboardScreen())),
+            _navItem(
+              context,
+              'Dashboard',
+              Icons.dashboard,
+              activePage == 'Dashboard',
+                  () => _go(context, const AdminDashboardScreen()),
+            ),
 
-          _navItem(context, 'Home', activePage == 'Home',
-                  () => _go(context, const HomeScreen())),
+          _navItem(
+            context,
+            'Home',
+            Icons.home,
+            activePage == 'Home',
+                () => _go(context, const HomeScreen()),
+          ),
 
-          _navItem(context, 'Ticket', activePage == 'Ticket',
-                  () => _go(context, const BookingScreen())),
+          _navItem(
+            context,
+            'Ticket',
+            Icons.confirmation_number,
+            activePage == 'Ticket',
+                () => _go(context, const BookingScreen()),
+          ),
 
-          _navItem(context, 'Halls', activePage == 'Halls',
-                  () => _go(context, const HallsScreen())),
+          _navItem(
+            context,
+            'Halls',
+            Icons.account_balance,
+            activePage == 'Halls',
+                () => _go(context, const HallsScreen()),
+          ),
 
-          _navItem(context, 'About', activePage == 'About', () {}),
+          _navItem(
+            context,
+            'About',
+            Icons.info,
+            activePage == 'About',
+                () {},
+          ),
 
-          _navItem(context, 'Logout', activePage == 'Logout',
-                  () => _go(context, const SignInScreen())),
+          _navItem(
+            context,
+            'Logout',
+            Icons.logout,
+            activePage == 'Logout',
+                () => _go(context, const SignInScreen()),
+          ),
         ],
       ),
     );
@@ -126,6 +157,7 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget _navItem(
       BuildContext context,
       String label,
+      IconData icon,
       bool active,
       VoidCallback onTap,
       ) {
@@ -145,11 +177,22 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ? Border.all(color: AppColors.gold, width: 1)
                 : Border.all(color: Colors.transparent),
           ),
-          child: Text(
-            label,
-            style: active
-                ? AppTextStyles.navItemActive
-                : AppTextStyles.navItem,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: active ? AppColors.gold : AppColors.white,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: active
+                    ? AppTextStyles.navItemActive
+                    : AppTextStyles.navItem,
+              ),
+            ],
           ),
         ),
       ),
