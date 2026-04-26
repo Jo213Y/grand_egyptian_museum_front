@@ -150,6 +150,19 @@ class ApiService {
     throw Exception("Failed to load ticket types");
   }
 
+  static Future<List<dynamic>> getHallExhibitions(int hallId) async {
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/halls/$hallId/exhibitions'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) return jsonDecode(res.body) as List;
+    } catch (e) {
+      print('Error fetching exhibitions: $e');
+    }
+    return [];
+  }
+
   // ── BOOKINGS ──────────────────────────────────────────────
   static Future<BookingModel> createBooking({
     required String visitDate,
@@ -243,10 +256,11 @@ class ApiService {
     throw Exception('Failed to load users');
   }
 
-  static Future<void> toggleBlockUser(int userId) async {
+  static Future<void> toggleBlockUser(int userId, {String? reason}) async {
     final res = await http.put(
       Uri.parse('$baseUrl/admin/users/$userId/block'),
       headers: _headers,
+      body: reason != null ? jsonEncode({'reason': reason}) : null,
     ).timeout(const Duration(seconds: 10));
 
     if (res.statusCode != 200) {
@@ -289,6 +303,14 @@ class ApiService {
       final data = jsonDecode(res.body);
       throw Exception(data['message'] ?? 'Delete failed');
     }
+  }
+
+  static Future<void> clearLogs() async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/admin/logs'),
+      headers: _headers,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Failed to clear logs');
   }
 
   static Future<List<dynamic>> getAdminLogs() async {

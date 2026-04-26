@@ -56,6 +56,7 @@ class _UsersTabState extends State<UsersTab> {
   Future<void> _toggleBlock(Map<String, dynamic> u) async {
     final id      = u['id'];
     final isBlock = (u['role'] ?? '').toString().toUpperCase() == 'BLOCK';
+    String? reason; // declared here so it's accessible in both branches
 
     if (isBlock) {
       // ── Unblock: simple confirm ──────────────────────────
@@ -78,7 +79,7 @@ class _UsersTabState extends State<UsersTab> {
     } else {
       // ── Block: ask for reason first ──────────────────────
       final reasonCtrl = TextEditingController();
-      final reason = await showDialog<String>(
+      reason = await showDialog<String>(
         context: context,
         builder: (_) => AlertDialog(
           backgroundColor: const Color(0xFF1A0A00),
@@ -137,7 +138,7 @@ class _UsersTabState extends State<UsersTab> {
     }
 
     try {
-      await ApiService.toggleBlockUser(id);
+      await ApiService.toggleBlockUser(id, reason: isBlock ? null : reason);
       // move to blocked tab automatically when blocking
       if (!isBlock && mounted) setState(() => tab = 2);
       AppEvents.emit(AppEventTypes.usersUpdated);

@@ -134,10 +134,6 @@ class _HallEditCardState extends State<HallEditCard> {
           "imageUrl": urlCtrl.text.trim(),
       };
 
-      if (selectedImage != null) {
-        await ApiService.uploadHallImage(widget.hall.id, selectedImage!);
-      }
-
       await ApiService.updateHall(widget.hall.id, data);
 
       AppEvents.emit(AppEventTypes.hallsUpdated);
@@ -175,11 +171,34 @@ class _HallEditCardState extends State<HallEditCard> {
       );
     }
 
+    final url = urlCtrl.text.isNotEmpty ? urlCtrl.text : widget.hall.imageUrl;
     return Image.network(
-      urlCtrl.text.isNotEmpty ? urlCtrl.text : widget.hall.imageUrl,
+      url,
       width: double.infinity,
       height: 170,
       fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        width: double.infinity,
+        height: 170,
+        color: Colors.black26,
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.broken_image_outlined, color: Colors.white30, size: 48),
+            SizedBox(height: 8),
+            Text('Image not available', style: TextStyle(color: Colors.white30, fontSize: 12)),
+          ],
+        ),
+      ),
+      loadingBuilder: (_, child, progress) {
+        if (progress == null) return child;
+        return Container(
+          width: double.infinity,
+          height: 170,
+          color: Colors.black26,
+          child: const Center(child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2)),
+        );
+      },
     );
   }
 
@@ -276,11 +295,6 @@ class _HallEditCardState extends State<HallEditCard> {
 
                 const SizedBox(height: 10),
 
-                ElevatedButton.icon(
-                  onPressed: pickImage,
-                  icon: const Icon(Icons.image),
-                  label: const Text("Upload Image"),
-                ),
 
                 const SizedBox(height: 12),
 
