@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
+import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
 import '../widgets/common_widgets.dart';
@@ -20,53 +22,25 @@ class HomeScreen extends StatelessWidget {
   void _goTicket(BuildContext ctx) =>
       Navigator.push(ctx, MaterialPageRoute(builder: (_) => const BookingScreen()));
 
+  Future<void> _openLocation() async {
+    final Uri url = Uri.parse(
+      'https://maps.app.goo.gl/vPn3nwWhaMcgvAv67',
+    );
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw 'Could not open map';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         extendBodyBehindAppBar: true,
         // ── Fixed AppBar ────────────────────────────────────────
-        appBar: GemAppBar(activePage: 'Home' ,
-          onAdmin: () =>Navigator.pushAndRemoveUntil(context,
-            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()), (_) => false),
-          onHome: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const HomeScreen()), (_) => false),
-          onTicket: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const BookingScreen()), (_) => false),
-          onHalls: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const HallsScreen()), (_) => false),
-          onAbout: () =>{},
-          onLogout: () =>Navigator.pushAndRemoveUntil(context,
-              MaterialPageRoute(builder: (_) => const SignInScreen()), (_) => false),
-
+        appBar: const GemAppBar(activePage: 'Home' ,
         ),
-        endDrawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(color: Colors.black87),
-                child: Image.asset(AppAssets.logoGold, width: 80, height: 80),
-              ),
-              _drawerItem('Home', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const HomeScreen()), (_) => false); }),
-              _drawerItem('Ticket', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const BookingScreen()), (_) => false); }),
-              _drawerItem('Halls', onTap: () { Navigator.pushAndRemoveUntil(context,
-                  MaterialPageRoute(builder: (_) => const HallsScreen()), (_) => false); }),
-              _drawerItem('About', onTap: () {}),
-              _drawerItem('Logout', onTap: () {
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (_) => const SignInScreen()), (_) => false);
-              }),
-              if (ApiService.isAdmin)
-                _drawerItem('Admin', onTap: () {
-                  Navigator.pushAndRemoveUntil(context,
-                      MaterialPageRoute(builder: (_) => const AdminDashboardScreen()), (_) => false);
-                }),
-            ],
-          ),
-        ),
+        endDrawer: const AppDrawer(),
         body: GemBackground(
           imageAsset: AppAssets.bgMuseum,
           child: SafeArea(
@@ -243,15 +217,22 @@ class HomeScreen extends StatelessWidget {
             textAlign: TextAlign.center),
         const SizedBox(height: 16),
         // Actual map from Figma asset (shows GEM location)
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            AppAssets.mapLocation,
-            width: double.infinity, height: 220, fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => GemNetworkImage(
-              AppAssets.mapLocationUrl,
-              width: double.infinity, height: 220, fit: BoxFit.cover,
-              borderRadius: BorderRadius.circular(16),
+        GestureDetector(
+          onTap: () => _openLocation(),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              AppAssets.mapLocation,
+              width: double.infinity,
+              height: 220,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => GemNetworkImage(
+                AppAssets.mapLocationUrl,
+                width: double.infinity,
+                height: 220,
+                fit: BoxFit.cover,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),
@@ -278,6 +259,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+
+
+
 
 class _HoursRow extends StatelessWidget {
   final String label;

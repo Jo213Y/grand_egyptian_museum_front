@@ -21,11 +21,15 @@ class _StatsTabState extends State<StatsTab> {
   bool loading = true;
   String? error; // ✅ نعرض الـ error الحقيقي
   late StreamSubscription stream;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     loadData();
+
+    // 🔄 Refresh every 30 seconds automatically
+   // _timer = Timer.periodic(const Duration(seconds: 30), (_) => loadData());
 
     stream = AppEvents.stream.listen((event) {
       if (event == AppEventTypes.statsUpdated ||
@@ -59,6 +63,7 @@ class _StatsTabState extends State<StatsTab> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     stream.cancel();
     super.dispose();
   }
@@ -118,7 +123,12 @@ class _StatsTabState extends State<StatsTab> {
           _sectionTitle("Ticket Analytics"),
           const SizedBox(height: 10),
           ...tickets.map((ticket) {
-            final value   = data.ticketsByType[ticket.ticketType.toUpperCase()] ?? 0;
+            // match case-insensitively — backend may return "Adult" or "ADULT"
+            final key = data.ticketsByType.keys.firstWhere(
+                  (k) => k.toUpperCase() == ticket.ticketType.toUpperCase(),
+              orElse: () => '',
+            );
+            final value   = key.isEmpty ? 0 : (data.ticketsByType[key] ?? 0);
             final percent = data.totalTickets == 0 ? 0.0 : value / data.totalTickets;
             return _ticketRow(
               label:   ticket.ticketType,
@@ -127,10 +137,6 @@ class _StatsTabState extends State<StatsTab> {
               color:   AppColors.gold,
             );
           }),
-          const SizedBox(height: 20),
-          _sectionTitle("Daily Sales"),
-          const SizedBox(height: 10),
-          _chartCard(data.dailySales),
         ],
       ),
     );
@@ -192,54 +198,5 @@ class _StatsTabState extends State<StatsTab> {
     );
   }
 
-  Widget _chartCard(Map<String, int> sales) {
-    if (sales.isEmpty) {
-      return Container(
-        height: 240,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.35),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Text('No sales data yet', style: TextStyle(color: Colors.white54)),
-      );
-    }
 
-    final entries = sales.entries.toList();
-    final spots   = List.generate(entries.length,
-            (i) => FlSpot(i.toDouble(), entries[i].value.toDouble()));
-
-    return Container(
-      height: 240,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: LineChart(
-        LineChartData(
-          gridData:   const FlGridData(show: false),
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
-          lineBarsData: [
-            LineChartBarData(
-              isCurved: true,
-              color:    AppColors.gold,
-              barWidth: 3,
-              dotData:  const FlDotData(show: true),
-              belowBarData: BarAreaData(
-                show: true,
-                gradient: LinearGradient(
-                  colors: [AppColors.gold.withOpacity(0.4), Colors.transparent],
-                  begin: Alignment.topCenter,
-                  end:   Alignment.bottomCenter,
-                ),
-              ),
-              spots: spots,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

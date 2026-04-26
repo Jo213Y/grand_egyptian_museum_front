@@ -70,8 +70,9 @@ class ApiService {
         'email': email,
         'password': password,
         'phone': phone,
-        'country': country,
-        'nationalId': nationalId,
+        'nationality': country,
+        'userType': country == 'Egypt' ? 'EGYPTIAN' : (country != null ? 'FOREIGN' : null),
+        'ssn': nationalId,
         'passportNumber': passportNumber,
       }),
     ).timeout(const Duration(seconds: 15));
@@ -147,6 +148,19 @@ class ApiService {
     }
 
     throw Exception("Failed to load ticket types");
+  }
+
+  static Future<List<dynamic>> getHallExhibitions(int hallId) async {
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/halls/$hallId/exhibitions'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) return jsonDecode(res.body) as List;
+    } catch (e) {
+      print('Error fetching exhibitions: $e');
+    }
+    return [];
   }
 
   // ── BOOKINGS ──────────────────────────────────────────────
@@ -242,15 +256,39 @@ class ApiService {
     throw Exception('Failed to load users');
   }
 
-  static Future<void> toggleBlockUser(int userId) async {
+  static Future<void> toggleBlockUser(int userId, {String? reason}) async {
     final res = await http.put(
       Uri.parse('$baseUrl/admin/users/$userId/block'),
       headers: _headers,
+      body: reason != null ? jsonEncode({'reason': reason}) : null,
     ).timeout(const Duration(seconds: 10));
 
     if (res.statusCode != 200) {
       final data = jsonDecode(res.body);
       throw Exception(data['message'] ?? 'Block failed');
+    }
+  }
+
+  static Future<void> addAdmin({
+    required String fullName,
+    required String email,
+    required String password,
+    String? ssn,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/users'),
+      headers: _headers,
+      body: jsonEncode({
+        'fullName': fullName,
+        'email': email,
+        'password': password,
+        if (ssn != null) 'ssn': ssn,
+      }),
+    ).timeout(const Duration(seconds: 10));
+
+    final data = jsonDecode(res.body);
+    if (res.statusCode != 200) {
+      throw Exception(data['message'] ?? 'Failed to add admin');
     }
   }
 
@@ -265,6 +303,14 @@ class ApiService {
       final data = jsonDecode(res.body);
       throw Exception(data['message'] ?? 'Delete failed');
     }
+  }
+
+  static Future<void> clearLogs() async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/admin/logs'),
+      headers: _headers,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Failed to clear logs');
   }
 
   static Future<List<dynamic>> getAdminLogs() async {

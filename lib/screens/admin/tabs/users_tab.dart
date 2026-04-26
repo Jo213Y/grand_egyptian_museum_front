@@ -12,11 +12,11 @@ class UsersTab extends StatefulWidget {
 }
 
 class _UsersTabState extends State<UsersTab> {
-  List admins = [];
-  List users = [];
-  List allList = []; // 👈 مهم للـ debug
-  bool loading = true;
-  bool showAdmins = false;
+  List<Map<String, dynamic>> admins  = [];
+  List<Map<String, dynamic>> users   = [];
+  List<Map<String, dynamic>> blocked = [];
+  bool loading  = true;
+  int  tab      = 0; // 0=Users, 1=Admins, 2=Blocked
 
   late StreamSubscription sub;
 
@@ -24,47 +24,9 @@ class _UsersTabState extends State<UsersTab> {
   void initState() {
     super.initState();
     load();
-
-    sub = AppEvents.stream.listen((event) {
-      if (event == AppEventTypes.usersUpdated) load();
+    sub = AppEvents.stream.listen((e) {
+      if (e == AppEventTypes.usersUpdated) load();
     });
-  }
-
-  Future<void> load() async {
-    try {
-      final all = await ApiService.getAdminUsers();
-      final list = List<Map<String, dynamic>>.from(all);
-
-      print("🔥 USERS RESPONSE: $list"); // 👈 debug
-
-      setState(() {
-        allList = list;
-
-        admins = list.where((u) {
-          final role = (u['role'] ?? '').toString().toUpperCase();
-          return role.contains('ADMIN'); // 👈 أهم تعديل
-        }).toList();
-
-        users = list.where((u) {
-          final role = (u['role'] ?? '').toString().toUpperCase();
-          return !role.contains('ADMIN');
-        }).toList();
-
-        loading = false;
-      });
-    } catch (e) {
-      print("❌ ERROR: $e");
-      setState(() {
-        admins = [];
-        users = [];
-        loading = false;
-      });
-    }
-  }
-
-  String formatDate(String? date) {
-    if (date == null || date.isEmpty) return '—';
-    return date.substring(0, 10);
   }
 
   @override
@@ -73,123 +35,425 @@ class _UsersTabState extends State<UsersTab> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (loading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppColors.gold));
+  Future<void> load() async {
+    try {
+      final all  = await ApiService.getAdminUsers();
+      final list = List<Map<String, dynamic>>.from(all);
+      setState(() {
+        admins  = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'ADMIN').toList();
+        blocked = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'BLOCK').toList();
+        users   = list.where((u) {
+          final r = (u['role'] ?? '').toString().toUpperCase();
+          return r == 'USER';
+        }).toList();
+        loading = false;
+      });
+    } catch (e) {
+      setState(() => loading = false);
     }
+  }
 
-    final list = showAdmins ? admins : users;
+  Future<void> _toggleBlock(Map<String, dynamic> u) async {
+    final id      = u['id'];
+    final isBlock = (u['role'] ?? '').toString().toUpperCase() == 'BLOCK';
+    String? reason; // declared here so it's accessible in both branches
 
-    return Column(
-      children: [
-        // ── Toggle Buttons ──
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+    if (isBlock) {
+      // ── Unblock: simple confirm ──────────────────────────
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          title: const Text('Unblock User', style: TextStyle(color: AppColors.gold)),
+          content: Text('Unblock "${u['fullName']}"?',
+              style: const TextStyle(color: Colors.white70)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+            TextButton(onPressed: () => Navigator.pop(context, true),
+                child: const Text('Unblock', style: TextStyle(color: Colors.green))),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    } else {
+      // ── Block: ask for reason first ──────────────────────
+      final reasonCtrl = TextEditingController();
+      reason = await showDialog<String>(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          title: const Text('Block User', style: TextStyle(color: Colors.redAccent)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _toggleBtn(
-                label: 'Users',
-                icon: Icons.person,
-                count: users.length,
-                active: !showAdmins,
-                onTap: () => setState(() => showAdmins = false),
-              ),
-              const SizedBox(width: 10),
-              _toggleBtn(
-                label: 'Admins',
-                icon: Icons.admin_panel_settings,
-                count: admins.length,
-                active: showAdmins,
-                onTap: () => setState(() => showAdmins = true),
+              Text('Block "${u['fullName']}"?',
+                  style: const TextStyle(color: Colors.white70)),
+              const SizedBox(height: 14),
+              const Text('Reason for blocking:',
+                  style: TextStyle(color: Colors.white54, fontSize: 12)),
+              const SizedBox(height: 8),
+              TextField(
+                controller: reasonCtrl,
+                autofocus: true,
+                maxLines: 2,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'e.g. Violation of terms...',
+                  hintStyle: const TextStyle(color: Colors.white30),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.white24),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.white24),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.redAccent),
+                  ),
+                ),
               ),
             ],
           ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // ── List ──
-        Expanded(
-          child: list.isEmpty
-              ? Center(
-            child: Text(
-              showAdmins ? 'No admins found' : 'No users found',
-              style: const TextStyle(color: Colors.white54),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, null),
+                child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+            TextButton(
+              onPressed: () {
+                final r = reasonCtrl.text.trim();
+                if (r.isEmpty) return; // must enter reason
+                Navigator.pop(context, r);
+              },
+              child: const Text('Block', style: TextStyle(color: Colors.redAccent)),
             ),
-          )
-              : ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: list.length,
-            itemBuilder: (_, i) {
-              final u = list[i];
-              return Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.35),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color:
-                      AppColors.primaryLight.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: showAdmins
-                          ? AppColors.primary.withOpacity(0.3)
-                          : Colors.white10,
-                      child: Icon(
-                        showAdmins
-                            ? Icons.admin_panel_settings
-                            : Icons.person,
-                        color: showAdmins
-                            ? AppColors.gold
-                            : Colors.white54,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                        children: [
-                          Text(u['fullName'] ?? '—',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight:
-                                  FontWeight.bold)),
-                          Text(u['email'] ?? '—',
-                              style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 12)),
-                        ],
-                      ),
-                    ),
-                    Text(formatDate(u['createdAt']),
-                        style: const TextStyle(
-                            color: AppColors.gold,
-                            fontSize: 12)),
-                  ],
-                ),
-              );
-            },
-          ),
+          ],
         ),
+      );
+      if (reason == null) return;
+    }
+
+    try {
+      await ApiService.toggleBlockUser(id, reason: isBlock ? null : reason);
+      // move to blocked tab automatically when blocking
+      if (!isBlock && mounted) setState(() => tab = 2);
+      AppEvents.emit(AppEventTypes.usersUpdated);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: \$e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _addAdmin() async {
+    final nameCtrl  = TextEditingController();
+    final emailCtrl = TextEditingController();
+    final passCtrl  = TextEditingController();
+    final ssnCtrl   = TextEditingController();
+    bool obscure    = true;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setS) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          title: const Row(
+            children: [
+              Icon(Icons.admin_panel_settings, color: AppColors.gold, size: 20),
+              SizedBox(width: 8),
+              Text('Add New Admin', style: TextStyle(color: AppColors.gold, fontSize: 16)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _dialogField(nameCtrl,  'Full Name', Icons.person),
+              const SizedBox(height: 10),
+              _dialogField(emailCtrl, 'Email',     Icons.email, type: TextInputType.emailAddress),
+              const SizedBox(height: 10),
+              _dialogField(passCtrl,  'Password',  Icons.lock,
+                obscure: obscure,
+                suffix: IconButton(
+                  icon: Icon(obscure ? Icons.visibility_off : Icons.visibility,
+                      color: Colors.white38, size: 18),
+                  onPressed: () => setS(() => obscure = !obscure),
+                ),
+              ),
+              const SizedBox(height: 10),
+              _dialogField(ssnCtrl, 'National ID (SSN)', Icons.badge,
+                  type: TextInputType.number),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            ),
+            TextButton(
+              onPressed: () {
+                if (nameCtrl.text.trim().isEmpty ||
+                    emailCtrl.text.trim().isEmpty ||
+                    passCtrl.text.trim().isEmpty) return;
+                Navigator.pop(ctx, true);
+              },
+              child: const Text('Add Admin', style: TextStyle(color: AppColors.gold)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ApiService.addAdmin(
+        fullName: nameCtrl.text.trim(),
+        email:    emailCtrl.text.trim(),
+        password: passCtrl.text.trim(),
+        ssn:      ssnCtrl.text.trim().isEmpty ? null : ssnCtrl.text.trim(),
+      );
+      AppEvents.emit(AppEventTypes.usersUpdated);
+      if (mounted) setState(() => tab = 1); // go to admins tab
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Admin added successfully ✅'),
+              backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Widget _dialogField(
+      TextEditingController ctrl,
+      String hint,
+      IconData icon, {
+        TextInputType type  = TextInputType.text,
+        bool obscure        = false,
+        Widget? suffix,
+      }) {
+    return TextField(
+      controller:   ctrl,
+      keyboardType: type,
+      obscureText:  obscure,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText:  hint,
+        hintStyle: const TextStyle(color: Colors.white30),
+        prefixIcon: Icon(icon, color: AppColors.gold, size: 18),
+        suffixIcon: suffix,
+        filled:     true,
+        fillColor:  Colors.white.withOpacity(0.05),
+        border:         OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.white24)),
+        enabledBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: Colors.white24)),
+        focusedBorder:  OutlineInputBorder(borderRadius: BorderRadius.circular(8),
+            borderSide: const BorderSide(color: AppColors.gold)),
+      ),
+    );
+  }
+
+  String _formatDate(String? d) =>
+      (d != null && d.length >= 10) ? d.substring(0, 10) : '—';
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return const Center(child: CircularProgressIndicator(color: AppColors.gold));
+    }
+
+    final list = tab == 1 ? admins : tab == 2 ? blocked : users;
+
+    return Stack(
+      children: [
+        Column(
+          children: [
+            // ── Toggle ──────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _toggleBtn('Users',   Icons.person,               users.length,   tab == 0, () => setState(() => tab = 0)),
+                  const SizedBox(width: 8),
+                  _toggleBtn('Admins',  Icons.admin_panel_settings, admins.length,  tab == 1, () => setState(() => tab = 1)),
+                  const SizedBox(width: 8),
+                  _toggleBtn('Blocked', Icons.block,                blocked.length, tab == 2, () => setState(() => tab = 2)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── List ─────────────────────────────────────────────
+            Expanded(
+              child: list.isEmpty
+                  ? Center(child: Text(
+                  tab == 1 ? 'No admins found' : tab == 2 ? 'No blocked users' : 'No users found',
+                  style: const TextStyle(color: Colors.white54)))
+                  : ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: list.length,
+                itemBuilder: (_, i) => _userCard(list[i]),
+              ),
+            ),
+          ],
+        ),
+
+        // ── FAB: Add Admin (visible only on Admins tab) ──
+        if (tab == 1)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton.extended(
+              onPressed: _addAdmin,
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.person_add, color: Colors.white),
+              label: const Text('Add Admin', style: TextStyle(color: Colors.white)),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _toggleBtn({
-    required String label,
-    required IconData icon,
-    required int count,
-    required bool active,
-    required VoidCallback onTap,
-  }) {
+  Widget _userCard(Map<String, dynamic> u) {
+    final role     = (u['role'] ?? '').toString().toUpperCase();
+    final isBlocked = role == 'BLOCK';
+    final isAdmin   = role.contains('ADMIN');
+
+    // ID field: SSN for Egyptians, passport for foreigners
+    final idLabel = u['ssn'] != null ? 'SSN' : 'Passport';
+    final idValue = u['ssn'] ?? u['passportNumber'] ?? '—';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.35),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isBlocked
+              ? Colors.red.withOpacity(0.5)
+              : AppColors.primaryLight.withOpacity(0.3),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header row ──
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: isBlocked
+                    ? Colors.red.withOpacity(0.2)
+                    : isAdmin
+                    ? AppColors.primary.withOpacity(0.3)
+                    : Colors.white10,
+                child: Icon(
+                  isBlocked ? Icons.block : isAdmin ? Icons.admin_panel_settings : Icons.person,
+                  color: isBlocked ? Colors.redAccent : isAdmin ? AppColors.gold : Colors.white54,
+                  size: 18,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(u['fullName'] ?? '—',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text(u['email'] ?? '—',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ],
+                ),
+              ),
+              if (isBlocked)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('BLOCKED', style: TextStyle(color: Colors.redAccent, fontSize: 10)),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+          const Divider(color: Colors.white10, height: 1),
+          const SizedBox(height: 10),
+
+          // ── Info grid ──
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              _infoChip(Icons.phone,        'Phone',       u['phone']       ?? '—'),
+              _infoChip(Icons.flag,         'Nationality', u['nationality'] ?? '—'),
+              _infoChip(Icons.badge,        idLabel,       idValue),
+              _infoChip(Icons.confirmation_number, 'Tickets', '${u['ticketsBooked'] ?? 0}'),
+              _infoChip(Icons.calendar_today, 'Joined',    _formatDate(u['createdAt'])),
+            ],
+          ),
+
+          // ── Block button (only for non-admins) ──
+          if (!isAdmin) ...[
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => _toggleBlock(u),
+                icon: Icon(
+                  isBlocked ? Icons.lock_open : Icons.block,
+                  size: 16,
+                  color: isBlocked ? Colors.green : Colors.redAccent,
+                ),
+                label: Text(
+                  isBlocked ? 'Unblock' : 'Block',
+                  style: TextStyle(
+                    color: isBlocked ? Colors.green : Colors.redAccent,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _infoChip(IconData icon, String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.gold),
+          const SizedBox(width: 5),
+          Text('$label: ', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text(value,       style: const TextStyle(color: Colors.white,   fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleBtn(String label, IconData icon, int count, bool active, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -197,32 +461,23 @@ class _UsersTabState extends State<UsersTab> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: active
-                ? AppColors.primary
-                : Colors.black.withOpacity(0.3),
+            color: active ? AppColors.primary : Colors.black.withOpacity(0.3),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: active
-                  ? AppColors.primary
-                  : AppColors.primaryLight.withOpacity(0.3),
+              color: active ? AppColors.primary : AppColors.primaryLight.withOpacity(0.3),
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon,
-                  size: 18,
-                  color: active ? Colors.white : Colors.white54),
+              Icon(icon, size: 18, color: active ? Colors.white : Colors.white54),
               const SizedBox(width: 6),
-              Text(
-                '$label ($count)',
-                style: TextStyle(
-                  color: active ? Colors.white : Colors.white54,
-                  fontWeight:
-                  active ? FontWeight.bold : FontWeight.normal,
-                  fontSize: 13,
-                ),
-              ),
+              Text('$label ($count)',
+                  style: TextStyle(
+                    color: active ? Colors.white : Colors.white54,
+                    fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 13,
+                  )),
             ],
           ),
         ),
