@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
+import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
@@ -90,7 +90,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       appBar: const GemAppBar(
         activePage: 'Ticket',
       ),
-      endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,
         child: SafeArea(
@@ -189,7 +188,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             GemTextField(
               label: "Name on card",
               controller: _nameCtrl,
-              validator: (v) => v!.isEmpty ? "Required" : null,
+              keyboardType: TextInputType.name,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
+              ],
+              validator: (v) => v!.trim().isEmpty ? "Required" : null,
             ),
 
             const SizedBox(height: 10),
@@ -198,7 +201,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
               label: "Card number",
               controller: _cardCtrl,
               keyboardType: TextInputType.number,
-              validator: (v) => v!.isEmpty ? "Required" : null,
+              maxLength: 16,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(16),
+              ],
+              validator: (v) => v!.length < 16 ? "Must be 16 digits" : null,
             ),
 
             const SizedBox(height: 10),
@@ -209,7 +217,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: GemTextField(
                     label: "MM/YY",
                     controller: _expCtrl,
-                    validator: (v) => v!.isEmpty ? "Required" : null,
+                    keyboardType: TextInputType.number,
+                    maxLength: 5,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      _ExpiryDateFormatter(),
+                    ],
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return "Required";
+                      if (!RegExp(r'^(0[1-9]|1[0-2])/\d{2}$').hasMatch(v))
+                        return "MM/YY";
+                      return null;
+                    },
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -218,7 +237,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     label: "CVV",
                     controller: _cvvCtrl,
                     obscure: true,
-                    validator: (v) => v!.isEmpty ? "Required" : null,
+                    keyboardType: TextInputType.number,
+                    maxLength: 3,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(3),
+                    ],
+                    validator: (v) => (v == null || v.length < 3) ? "Must be 3 digits" : null,
                   ),
                 ),
               ],
@@ -654,4 +679,25 @@ class _DashedLinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_) => false;
+}
+
+// ── Expiry Date Formatter MM/YY ──────────────────────────
+class _ExpiryDateFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    var digits = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length > 4) digits = digits.substring(0, 4);
+
+    String formatted = '';
+    for (int i = 0; i < digits.length; i++) {
+      if (i == 2) formatted += '/';
+      formatted += digits[i];
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
 }
