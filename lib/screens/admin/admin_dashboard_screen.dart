@@ -117,6 +117,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         ],
                       ),
                     ),
+                    Tab(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.bookmark_outlined, size: 18),
+                          SizedBox(width: 2),
+                          Text('Tickets', style: TextStyle(fontSize: 12)),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -132,6 +142,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                     UsersTab(),
                     HallEditTab(),
                     LogsTab(),
+                    BookingsTab(),
+
                   ],
                 ),
               ),
