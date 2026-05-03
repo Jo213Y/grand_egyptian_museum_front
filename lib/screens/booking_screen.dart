@@ -40,8 +40,6 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> loadTickets() async {
     final ticketTypes = await ApiService.getTicketTypes();
-    print('DEBUG: ${ticketTypes.map((t) => {'label': t.ticketType, 'age': t.ageRange, 'desc': t.description}).toList()}');
-
     setState(() {
       selectedTickets = ticketTypes
           .map((ticket) => SelectedTicket(ticket: ticket))

@@ -189,14 +189,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               GemTextField(
                                 label: 'National ID',
                                 controller: _nationalIdCtrl,
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.text,
                                 validator: (v) {
                                   if (v == null || v.isEmpty) {
                                     return 'Required';
                                   }
+
+                                  // 👇 يتأكد إن كله أرقام بس
+                                  if (!RegExp(r'^\d+$').hasMatch(v)) {
+                                    return 'Invalid ID';
+                                  }
+
                                   if (v.length != 14) {
                                     return 'Must be 14 digits';
                                   }
+
                                   return null;
                                 },
                               ),

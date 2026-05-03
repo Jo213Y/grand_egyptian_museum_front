@@ -11,7 +11,10 @@ class ArtifactModel {
     required this.historicalPeriod,
     required this.description,
     required this.imageUrl,
+    this.isHidden = false,
   });
+
+  final bool isHidden;
 
   factory ArtifactModel.fromJson(Map<String, dynamic> j) => ArtifactModel(
     id:               j['Artifact_id'] ?? j['artifactId'] ?? 0,
@@ -19,6 +22,7 @@ class ArtifactModel {
     historicalPeriod: j['Historical_period'] ?? j['historicalPeriod'] ?? '',
     description:      j['Art_description']   ?? j['artDescription']  ?? '',
     imageUrl:         j['image_url']         ?? j['imageUrl']        ?? '',
+    isHidden:         j['isHidden'] ?? false,
   );
 }
 

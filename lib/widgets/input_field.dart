@@ -1,6 +1,7 @@
 // ── input field  ──────────────
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 
@@ -10,6 +11,8 @@ class GemTextField extends StatelessWidget {
   final TextEditingController? controller;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
 
   const GemTextField({
     super.key,
@@ -18,6 +21,8 @@ class GemTextField extends StatelessWidget {
     this.controller,
     this.keyboardType,
     this.validator,
+    this.inputFormatters,
+    this.maxLength,
   });
 
   @override
@@ -30,6 +35,11 @@ class GemTextField extends StatelessWidget {
         obscureText: obscure,
         keyboardType: keyboardType,
         validator: validator,
+        inputFormatters: inputFormatters,
+        maxLength: maxLength,
+        buildCounter: maxLength != null
+            ? (_, {required currentLength, required isFocused, maxLength}) => null
+            : null,
         style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
         decoration: InputDecoration(hintText: label),
       ),

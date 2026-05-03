@@ -150,10 +150,79 @@ class ApiService {
     throw Exception("Failed to load ticket types");
   }
 
-  static Future<List<dynamic>> getHallExhibitions(int hallId) async {
+  static Future<void> addExhibition({
+    required int hallId,
+    required String name,
+    required String description,
+    String? imageUrl,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/exhibitions'),
+      headers: _headers,
+      body: jsonEncode({
+        'hallId': hallId,
+        'name': name,
+        'description': description,
+        if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+      }),
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception(jsonDecode(res.body)['message'] ?? 'Failed');
+  }
+
+  static Future<void> updateArtifact({
+    required int artifactId,
+    required String name,
+    required String historicalPeriod,
+    required String description,
+    String? imageUrl,
+  }) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/admin/artifacts/$artifactId'),
+      headers: _headers,
+      body: jsonEncode({
+        'name': name,
+        'historicalPeriod': historicalPeriod,
+        'description': description,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+      }),
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception(jsonDecode(res.body)['message'] ?? 'Failed');
+  }
+
+  static Future<void> toggleArtifactVisibility(int artifactId) async {
+    final res = await http.put(
+      Uri.parse('$baseUrl/admin/artifacts/$artifactId/hide'),
+      headers: _headers,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Failed');
+  }
+
+  static Future<void> addArtifact({
+    required int exhibitionId,
+    required String name,
+    required String historicalPeriod,
+    required String description,
+    String? imageUrl,
+  }) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/admin/artifacts'),
+      headers: _headers,
+      body: jsonEncode({
+        'exhibitionId': exhibitionId,
+        'name': name,
+        'historicalPeriod': historicalPeriod,
+        'description': description,
+        if (imageUrl != null && imageUrl.isNotEmpty) 'imageUrl': imageUrl,
+      }),
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception(jsonDecode(res.body)['message'] ?? 'Failed');
+  }
+
+  static Future<List<dynamic>> getHallExhibitions(int hallId, {bool showHidden = false}) async {
     try {
+      final url = '$baseUrl/halls/$hallId/exhibitions' + (showHidden ? '?showHidden=true' : '');
       final res = await http.get(
-        Uri.parse('$baseUrl/halls/$hallId/exhibitions'),
+        Uri.parse(url),
         headers: _headers,
       ).timeout(const Duration(seconds: 10));
       if (res.statusCode == 200) return jsonDecode(res.body) as List;
