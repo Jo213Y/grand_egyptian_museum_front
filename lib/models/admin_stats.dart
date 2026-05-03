@@ -10,7 +10,6 @@ class AdminStats {
   final Map<String, int> bookingsByHall;
   final Map<String, double> revenueByType;
 
-  // ✅ الجديد
   final Map<String, int> dailySales;
 
   const AdminStats({
@@ -23,7 +22,7 @@ class AdminStats {
     required this.ticketsByType,
     required this.bookingsByHall,
     required this.revenueByType,
-    this.dailySales = const {}, // ✅ مهم
+    this.dailySales = const {},
   });
 
   factory AdminStats.fromJson(Map<String, dynamic> j) {
@@ -49,7 +48,7 @@ class AdminStats {
       ),
     );
 
-    // ✅ الجديد
+
     final dailySales = Map<String, int>.from(
       (j['dailySales'] ?? {}).map(
             (k, v) => MapEntry(k.toString(), (v as num).toInt()),
@@ -66,27 +65,27 @@ class AdminStats {
       ticketsByType: tickets,
       bookingsByHall: bookingsByHall,
       revenueByType: revenueByType,
-      dailySales: dailySales, // ✅ مهم
+      dailySales: dailySales,
     );
   }
 
-  // Demo
-  static AdminStats demo() => const AdminStats(
-    totalUsers: 100,
-    totalBookings: 200,
-    confirmedBookings: 180,
-    cancelledBookings: 20,
-    totalRevenue: 5000,
-    totalTickets: 200,
-    ticketsByType: {'ADULT': 120, 'CHILD': 50, 'SENIOR': 30},
-    bookingsByHall: {},
-    revenueByType: {},
-    dailySales: {
-      '2026-04-20': 3,
-      '2026-04-21': 6,
-      '2026-04-22': 5,
-      '2026-04-23': 10,
-      '2026-04-24': 7,
-    },
-  );
+  // // Demo
+  // static AdminStats demo() => const AdminStats(
+  //   totalUsers: 100,
+  //   totalBookings: 200,
+  //   confirmedBookings: 180,
+  //   cancelledBookings: 20,
+  //   totalRevenue: 5000,
+  //   totalTickets: 200,
+  //   ticketsByType: {'ADULT': 120, 'CHILD': 50, 'SENIOR': 30},
+  //   bookingsByHall: {},
+  //   revenueByType: {},
+  //   dailySales: {
+  //     '2026-04-20': 3,
+  //     '2026-04-21': 6,
+  //     '2026-04-22': 5,
+  //     '2026-04-23': 10,
+  //     '2026-04-24': 7,
+  //   },
+  // );
 }

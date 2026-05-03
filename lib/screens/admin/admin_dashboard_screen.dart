@@ -16,6 +16,7 @@ import 'tabs/stats_tab.dart';
 import 'tabs/users_tab.dart';
 import 'tabs/hall_edit_tab.dart';
 import 'tabs/logs_tab.dart';
+import 'tabs/bookings_tab.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -32,7 +33,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabCtrl = TabController(length: 4, vsync: this);
+    _tabCtrl = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -46,8 +47,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const GemAppBar(
-        activePage: 'Dashboard',
-      ),
+        activePage: 'Admin',),
       endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,
@@ -82,7 +82,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.bar_chart, size: 18),
-                          SizedBox(width: 6),
+                          SizedBox(width: 2),
                           Text('Statistics', style: TextStyle(fontSize: 12)),
                         ],
                       ),
@@ -92,7 +92,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.people, size: 18),
-                          SizedBox(width: 6),
+                          SizedBox(width: 2),
                           Text('Users', style: TextStyle(fontSize: 12)),
                         ],
                       ),
@@ -102,7 +102,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.edit_note, size: 18),
-                          SizedBox(width: 6),
+                          SizedBox(width: 2),
                           Text('Hall', style: TextStyle(fontSize: 12)),
                         ],
                       ),
@@ -112,7 +112,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.history, size: 18),
-                          SizedBox(width: 6),
+                          SizedBox(width: 2),
                           Text('Logs', style: TextStyle(fontSize: 12)),
                         ],
                       ),

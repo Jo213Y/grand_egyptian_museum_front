@@ -38,7 +38,11 @@ class _UsersTabState extends State<UsersTab> {
   Future<void> load() async {
     try {
       final all  = await ApiService.getAdminUsers();
+
+      if (!mounted) return; // ✅ أهم سطر
+
       final list = List<Map<String, dynamic>>.from(all);
+
       setState(() {
         admins  = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'ADMIN').toList();
         blocked = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'BLOCK').toList();
@@ -49,6 +53,7 @@ class _UsersTabState extends State<UsersTab> {
         loading = false;
       });
     } catch (e) {
+      if (!mounted) return; // ✅ مهم برضه
       setState(() => loading = false);
     }
   }

@@ -36,6 +36,9 @@ class HallModel {
       );
 }
 
+
+
+
 /// Static hall data — fallback لو الـ backend مش شغال
 /// المعرّفات (IDs) متطابقة مع جدول halls في museum_project
 class HallsData {

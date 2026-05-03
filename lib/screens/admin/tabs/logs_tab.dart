@@ -53,7 +53,7 @@ class _LogsTabState extends State<LogsTab> {
   }
   String _p(int n) => n.toString().padLeft(2, '0');
 
-  // Extract target (the thing the action was done on) from detail string
+  // Extract target
   String _extractTarget(String? detail, String? action) {
     if (detail == null || detail.isEmpty) return '—';
     final d = detail.split('| Reason:').first.trim();
@@ -70,11 +70,11 @@ class _LogsTabState extends State<LogsTab> {
 
   _ActionStyle _styleFor(String? action) {
     switch ((action ?? '').toUpperCase()) {
-      case 'BLOCK_USER':   return _ActionStyle(Icons.block,               Colors.redAccent,    'Blocked User');
-      case 'UNBLOCK_USER': return _ActionStyle(Icons.lock_open,           Colors.greenAccent,  'Unblocked User');
-      case 'ADD_ADMIN':    return _ActionStyle(Icons.admin_panel_settings, AppColors.gold,      'Added Admin');
-      case 'DELETE_USER':  return _ActionStyle(Icons.delete_forever,       Colors.orangeAccent, 'Deleted User');
-      case 'UPDATE_HALL':  return _ActionStyle(Icons.edit,                 Colors.blueAccent,   'Updated Hall');
+      case 'BLOCK_USER':   return const _ActionStyle(Icons.block,               Colors.redAccent,    'Blocked User');
+      case 'UNBLOCK_USER': return const _ActionStyle(Icons.lock_open,           Colors.greenAccent,  'Unblocked User');
+      case 'ADD_ADMIN':    return const _ActionStyle(Icons.admin_panel_settings, AppColors.gold,      'Added Admin');
+      case 'DELETE_USER':  return const _ActionStyle(Icons.delete_forever,       Colors.orangeAccent, 'Deleted User');
+      case 'UPDATE_HALL':  return const _ActionStyle(Icons.edit,                 Colors.blueAccent,   'Updated Hall');
       default:             return _ActionStyle(Icons.info_outline,          Colors.white54,      action ?? '—');
     }
   }

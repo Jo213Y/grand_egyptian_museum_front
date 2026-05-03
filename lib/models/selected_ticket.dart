@@ -12,7 +12,7 @@ class SelectedTicket {
 
   double get subtotal => ticket.price * quantity;
 
-  // getters مختصرة للوصول السريع
+
   String get label => ticket.label;
   double get price => ticket.price;
   String get ageRange => ticket.ageRange ?? '';

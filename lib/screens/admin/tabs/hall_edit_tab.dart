@@ -96,7 +96,7 @@ class _HallEditCardState extends State<HallEditCard> {
     nameCtrl = TextEditingController(text: widget.hall.name);
     descCtrl = TextEditingController(text: widget.hall.fullDescription);
 
-    // 👇 عدّل اسم الحقل حسب الموديل عندك
+
     densityCtrl = TextEditingController(
       text: widget.hall.capacity?.toString() ?? "0",
     );
@@ -143,10 +143,7 @@ class _HallEditCardState extends State<HallEditCard> {
       final data = {
         "name": nameCtrl.text.trim(),
         "description": descCtrl.text.trim(),
-
-        // 👇 density / capacity
         "capacity": int.tryParse(densityCtrl.text.trim()) ?? 0,
-
         if (urlCtrl.text.isNotEmpty)
           "imageUrl": urlCtrl.text.trim(),
       };
@@ -315,14 +312,6 @@ class _HallEditCardState extends State<HallEditCard> {
                 ),
 
                 const SizedBox(height: 10),
-
-                // ElevatedButton.icon(
-                //   onPressed: pickImage,
-                //   icon: const Icon(Icons.image),
-                //   label: const Text("Upload Image"),
-                // ),
-
-                const SizedBox(height: 12),
 
                 SizedBox(
                   width: double.infinity,
@@ -524,9 +513,11 @@ class _HallEditCardState extends State<HallEditCard> {
                         await ApiService.toggleArtifactVisibility(a.id);
                         await loadExhibitions();
                       } catch (e) {
-                        if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed: \$e'), backgroundColor: Colors.red),
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Failed: \$e'), backgroundColor: Colors.red),
                         );
+                        }
                       }
                     },
                     icon: Icon(

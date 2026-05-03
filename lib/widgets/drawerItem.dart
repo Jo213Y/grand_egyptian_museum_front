@@ -23,18 +23,11 @@ class AppDrawer extends StatelessWidget {
             decoration: const BoxDecoration(
               color: AppColors.black,
               border: Border(
-                bottom: BorderSide(
-                  color: AppColors.primaryLight,
-                  width: 1,
-                ),
+                bottom: BorderSide(color: AppColors.primaryLight, width: 1),
               ),
             ),
             child: Center(
-              child: Image.asset(
-                AppAssets.logoGold,
-                width: 90,
-                height: 90,
-              ),
+              child: Image.asset(AppAssets.logoGold, width: 90, height: 90),
             ),
           ),
 
@@ -44,54 +37,36 @@ class AppDrawer extends StatelessWidget {
               context,
               'Dashboard',
               icon: Icons.dashboard,
-              onTap: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const AdminDashboardScreen(),
-                  ),
-                      (_) => false,
-                );
-              },
+              onTap: () => Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                      (_) => false),
             ),
 
           _drawerItem(
             context,
             'Home',
             icon: Icons.home,
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
+            onTap: () => Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) => const HomeScreen()),
-                    (_) => false,
-              );
-            },
+                    (_) => false),
           ),
 
           _drawerItem(
             context,
             'Ticket',
             icon: Icons.confirmation_number,
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
+            onTap: () => Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) => const BookingScreen()),
-                    (_) => false,
-              );
-            },
+                    (_) => false),
           ),
 
           _drawerItem(
             context,
             'Halls',
             icon: Icons.account_balance,
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
+            onTap: () => Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) => const HallsScreen()),
-                    (_) => false,
-              );
-            },
+                    (_) => false),
           ),
 
           _drawerItem(
@@ -108,13 +83,9 @@ class AppDrawer extends StatelessWidget {
             'Logout',
             icon: Icons.logout,
             isDanger: true,
-            onTap: () {
-              Navigator.pushAndRemoveUntil(
-                context,
+            onTap: () => Navigator.pushAndRemoveUntil(context,
                 MaterialPageRoute(builder: (_) => const SignInScreen()),
-                    (_) => false,
-              );
-            },
+                    (_) => false),
           ),
         ],
       ),
@@ -136,20 +107,13 @@ class AppDrawer extends StatelessWidget {
           border: Border.all(color: AppColors.primaryLight.withOpacity(0.3)),
         ),
         child: ListTile(
-          leading: Icon(
-            icon,
-            color: isDanger ? Colors.redAccent : AppColors.gold,
-          ),
-          title: Text(
-            label,
-            style: TextStyle(
-              color: isDanger ? Colors.redAccent : AppColors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+          leading: Icon(icon,
+              color: isDanger ? Colors.redAccent : AppColors.gold),
+          title: Text(label,
+              style: TextStyle(
+                  color: isDanger ? Colors.redAccent : AppColors.white,
+                  fontWeight: FontWeight.w600)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           hoverColor: AppColors.primary.withOpacity(0.1),
           splashColor: AppColors.primary.withOpacity(0.2),
           onTap: onTap,

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:grand_egyptian_museum/screens/signin_screen.dart';
-import 'package:grand_egyptian_museum/widgets/drawerItem.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_bar.dart';
+import '../widgets/drawerItem.dart';
 import '../widgets/common_widgets.dart';
 import '../utils/app_assets.dart';
 import '../services/api_service.dart';
@@ -38,8 +38,7 @@ class HomeScreen extends StatelessWidget {
       child: Scaffold(
         extendBodyBehindAppBar: true,
         // ── Fixed AppBar ────────────────────────────────────────
-        appBar: const GemAppBar(activePage: 'Home' ,
-        ),
+        appBar: const GemAppBar(activePage: 'Home' ,),
         endDrawer: const AppDrawer(),
         body: GemBackground(
           imageAsset: AppAssets.bgMuseum,
@@ -114,7 +113,7 @@ class HomeScreen extends StatelessWidget {
       const SizedBox(height: 16),
       const Text(
         'The Grand Egyptian Museum welcomes you after its full opening, to discover the largest museum in the world dedicated to one civilization.\n\n'
-        "Your visit includes King Tutankhamun's halls, the main exhibition halls, the great foyer, the great staircase, the Khufu Boat Museum, the commercial area, and the outdoor gardens, to live an exceptional experience that combines the richness of history and the splendor of contemporary design.",
+            "Your visit includes King Tutankhamun's halls, the main exhibition halls, the great foyer, the great staircase, the Khufu Boat Museum, the commercial area, and the outdoor gardens, to live an exceptional experience that combines the richness of history and the splendor of contemporary design.",
         style: TextStyle(color: Colors.white, fontSize: 14, fontFamily: 'Inter', height: 1.65),
       ),
       const SizedBox(height: 28),
@@ -179,7 +178,7 @@ class HomeScreen extends StatelessWidget {
     ]);
   }
 
-  // ── Working Hours card (Figma exact) ────────────────────────
+  // ── Working Hours card ────────────────────────
   Widget _workingHoursCard() {
     return const GemCard(
       child: Column(children: [
@@ -207,7 +206,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // ── Location card with actual GEM map ───────────────────────
+  // ── Location card ───────────────────────
   Widget _locationCard() {
     return GemCard(
       child: Column(children: [
@@ -216,7 +215,6 @@ class HomeScreen extends StatelessWidget {
                 fontFamily: 'Inter'),
             textAlign: TextAlign.center),
         const SizedBox(height: 16),
-        // Actual map from Figma asset (shows GEM location)
         GestureDetector(
           onTap: () => _openLocation(),
           child: ClipRRect(

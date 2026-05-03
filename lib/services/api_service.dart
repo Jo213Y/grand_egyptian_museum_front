@@ -47,6 +47,7 @@ class ApiService {
     if (res.statusCode == 200 && data['token'] != null) {
       setToken(data['token']);
       currentUser = UserModel.fromJson(data);
+      print('DEBUG role: \${currentUser?.role} | isAdmin: \${currentUser?.role == "ADMIN"}');
       return currentUser!;
     }
 
@@ -82,6 +83,7 @@ class ApiService {
     if (res.statusCode == 200 && data['token'] != null) {
       setToken(data['token']);
       currentUser = UserModel.fromJson(data);
+      print('DEBUG role: \${currentUser?.role} | isAdmin: \${currentUser?.role == "ADMIN"}');
       return currentUser!;
     }
 
@@ -264,6 +266,38 @@ class ApiService {
     }
 
     throw Exception(data['message'] ?? 'Booking failed');
+  }
+
+  static Future<List<dynamic>> getAllBookings() async {
+    try {
+      final res = await http.get(
+        Uri.parse('$baseUrl/admin/bookings'),
+        headers: _headers,
+      ).timeout(const Duration(seconds: 10));
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as List<dynamic>;
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  static Future<void> cancelBooking(int bookingId) async {
+    final headers = Map<String, String>.from(_headers);
+    headers['Content-Type'] = 'application/json';
+    final res = await http.put(
+      Uri.parse('$baseUrl/bookings/$bookingId/cancel'),
+      headers: headers,
+      body: '{}',
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Failed to cancel booking');
+  }
+
+  static Future<void> deleteBooking(int bookingId) async {
+    final res = await http.delete(
+      Uri.parse('$baseUrl/bookings/$bookingId'),
+      headers: _headers,
+    ).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Failed to delete booking');
   }
 
   static Future<List<BookingModel>> getMyBookings() async {
