@@ -7,6 +7,7 @@ import '../screens/home_screen.dart';
 import '../screens/booking_screen.dart';
 import '../screens/halls_screen.dart';
 import '../screens/signin_screen.dart';
+import '../screens/about_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -73,7 +74,11 @@ class AppDrawer extends StatelessWidget {
             context,
             'About',
             icon: Icons.info,
-            onTap: () {},
+            onTap: () => Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const AboutScreen()),
+                  (_) => false,
+            ),
           ),
 
           const SizedBox(height: 10),

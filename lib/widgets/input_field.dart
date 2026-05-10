@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 
-class GemTextField extends StatelessWidget {
+class GemTextField extends StatefulWidget {
   final String label;
   final bool obscure;
   final TextEditingController? controller;
@@ -26,22 +26,47 @@ class GemTextField extends StatelessWidget {
   });
 
   @override
+  State<GemTextField> createState() => _GemTextFieldState();
+}
+
+class _GemTextFieldState extends State<GemTextField> {
+  late bool _hidden;
+
+  @override
+  void initState() {
+    super.initState();
+    _hidden = widget.obscure;
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(label, style: AppTextStyles.label),
+      Text(widget.label, style: AppTextStyles.label),
       const SizedBox(height: 6),
       TextFormField(
-        controller: controller,
-        obscureText: obscure,
-        keyboardType: keyboardType,
-        validator: validator,
-        inputFormatters: inputFormatters,
-        maxLength: maxLength,
-        buildCounter: maxLength != null
+        controller: widget.controller,
+        obscureText: _hidden,
+        keyboardType: widget.keyboardType,
+        validator: widget.validator,
+        inputFormatters: widget.inputFormatters,
+        maxLength: widget.maxLength,
+        buildCounter: widget.maxLength != null
             ? (_, {required currentLength, required isFocused, maxLength}) => null
             : null,
         style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
-        decoration: InputDecoration(hintText: label),
+        decoration: InputDecoration(
+          hintText: widget.label,
+          suffixIcon: widget.obscure
+              ? IconButton(
+            icon: Icon(
+              _hidden ? Icons.visibility_off : Icons.visibility,
+              color: AppColors.primary,
+              size: 20,
+            ),
+            onPressed: () => setState(() => _hidden = !_hidden),
+          )
+              : null,
+        ),
       ),
     ]);
   }
