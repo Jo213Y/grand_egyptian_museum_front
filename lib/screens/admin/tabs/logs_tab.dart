@@ -53,11 +53,16 @@ class _LogsTabState extends State<LogsTab> {
   }
   String _p(int n) => n.toString().padLeft(2, '0');
 
-  // Extract target
-  String _extractTarget(String? detail, String? action) {
+  // Extract target — prefer structured fields from API, fallback to parsing detail
+  String _extractTarget(Map<String, dynamic> l) {
+    final name  = l['targetUserName']  as String?;
+    final email = l['targetUserEmail'] as String?;
+    if (name != null && name.isNotEmpty)  return name;
+    if (email != null && email.isNotEmpty) return email;
+    // fallback: parse from detail string
+    final detail = l['detail'] as String?;
     if (detail == null || detail.isEmpty) return '—';
     final d = detail.split('| Reason:').first.trim();
-    // e.g. "Blocked user: joe@gmail.com" → "joe@gmail.com"
     if (d.contains(':')) return d.split(':').sublist(1).join(':').trim();
     return d;
   }
@@ -155,7 +160,7 @@ class _LogsTabState extends State<LogsTab> {
   Widget _logCard(Map<String, dynamic> l) {
     final style  = _styleFor(l['action']);
     final name   = l['adminName'] ?? l['adminEmail'] ?? '—';
-    final target = _extractTarget(l['detail'], l['action']);
+    final target = _extractTarget(l);
     final reason = _extractReason(l['detail']);
     final time   = _formatTime(l['timestamp']);
 

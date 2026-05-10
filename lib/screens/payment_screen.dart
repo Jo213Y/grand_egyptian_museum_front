@@ -48,6 +48,41 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Future<void> _pay() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // ── Block admin from booking ──────────────────────────
+    if (ApiService.isAdmin) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: const Color(0xFF1A0A00),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: const BorderSide(color: Color(0xFFC8A96E)),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.block, color: Color(0xFFC8A96E)),
+              SizedBox(width: 10),
+              Text(
+                'Booking Not Allowed',
+                style: TextStyle(color: Color(0xFFF5D896), fontSize: 18),
+              ),
+            ],
+          ),
+          content: const Text(
+            'Admins are not allowed to book tickets.\nPlease use a regular user account.',
+            style: TextStyle(color: Color(0xFFC8A96E)),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK', style: TextStyle(color: Color(0xFFC8A96E))),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
 
     try {
