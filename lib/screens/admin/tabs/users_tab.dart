@@ -18,6 +18,9 @@ class _UsersTabState extends State<UsersTab> {
   bool loading  = true;
   int  tab      = 0; // 0=Users, 1=Admins, 2=Blocked
 
+  // ── Sort ──────────────────────────────────────────────
+  String _sortBy = 'newest'; // 'newest' | 'most_tickets' | 'least_tickets'
+
   late StreamSubscription sub;
 
   @override
@@ -38,11 +41,8 @@ class _UsersTabState extends State<UsersTab> {
   Future<void> load() async {
     try {
       final all  = await ApiService.getAdminUsers();
-
-      if (!mounted) return; // ✅ أهم سطر
-
+      if (!mounted) return;
       final list = List<Map<String, dynamic>>.from(all);
-
       setState(() {
         admins  = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'ADMIN').toList();
         blocked = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'BLOCK').toList();
@@ -53,18 +53,41 @@ class _UsersTabState extends State<UsersTab> {
         loading = false;
       });
     } catch (e) {
-      if (!mounted) return; // ✅ مهم برضه
+      if (!mounted) return;
       setState(() => loading = false);
     }
+  }
+
+  // ── Sort logic ────────────────────────────────────────
+  List<Map<String, dynamic>> _sorted(List<Map<String, dynamic>> list) {
+    final copy = List<Map<String, dynamic>>.from(list);
+    switch (_sortBy) {
+      case 'most_tickets':
+        copy.sort((a, b) =>
+            ((b['ticketsBooked'] as num?) ?? 0)
+                .compareTo((a['ticketsBooked'] as num?) ?? 0));
+        break;
+      case 'least_tickets':
+        copy.sort((a, b) =>
+            ((a['ticketsBooked'] as num?) ?? 0)
+                .compareTo((b['ticketsBooked'] as num?) ?? 0));
+        break;
+      case 'newest':
+      default:
+        copy.sort((a, b) =>
+            (b['createdAt'] ?? '').toString()
+                .compareTo((a['createdAt'] ?? '').toString()));
+        break;
+    }
+    return copy;
   }
 
   Future<void> _toggleBlock(Map<String, dynamic> u) async {
     final id      = u['id'];
     final isBlock = (u['role'] ?? '').toString().toUpperCase() == 'BLOCK';
-    String? reason; // declared here so it's accessible in both branches
+    String? reason;
 
     if (isBlock) {
-      // ── Unblock: simple confirm ──────────────────────────
       final confirm = await showDialog<bool>(
         context: context,
         builder: (_) => AlertDialog(
@@ -82,7 +105,6 @@ class _UsersTabState extends State<UsersTab> {
       );
       if (confirm != true) return;
     } else {
-      // ── Block: ask for reason first ──────────────────────
       final reasonCtrl = TextEditingController();
       reason = await showDialog<String>(
         context: context,
@@ -111,7 +133,7 @@ class _UsersTabState extends State<UsersTab> {
                   fillColor: Colors.white.withOpacity(0.05),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.white24),
+                    borderSide: const BorderSide(color: Colors.white24),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -131,7 +153,7 @@ class _UsersTabState extends State<UsersTab> {
             TextButton(
               onPressed: () {
                 final r = reasonCtrl.text.trim();
-                if (r.isEmpty) return; // must enter reason
+                if (r.isEmpty) return;
                 Navigator.pop(context, r);
               },
               child: const Text('Block', style: TextStyle(color: Colors.redAccent)),
@@ -144,13 +166,12 @@ class _UsersTabState extends State<UsersTab> {
 
     try {
       await ApiService.toggleBlockUser(id, reason: isBlock ? null : reason);
-      // move to blocked tab automatically when blocking
       if (!isBlock && mounted) setState(() => tab = 2);
       AppEvents.emit(AppEventTypes.usersUpdated);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: \$e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Failed: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -224,7 +245,7 @@ class _UsersTabState extends State<UsersTab> {
         ssn:      ssnCtrl.text.trim().isEmpty ? null : ssnCtrl.text.trim(),
       );
       AppEvents.emit(AppEventTypes.usersUpdated);
-      if (mounted) setState(() => tab = 1); // go to admins tab
+      if (mounted) setState(() => tab = 1);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Admin added successfully ✅'),
@@ -279,13 +300,14 @@ class _UsersTabState extends State<UsersTab> {
       return const Center(child: CircularProgressIndicator(color: AppColors.gold));
     }
 
-    final list = tab == 1 ? admins : tab == 2 ? blocked : users;
+    final rawList = tab == 1 ? admins : tab == 2 ? blocked : users;
+    final list    = _sorted(rawList);
 
     return Stack(
       children: [
         Column(
           children: [
-            // ── Toggle ──────────────────────────────────────────
+            // ── Toggle Tabs ─────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -298,7 +320,24 @@ class _UsersTabState extends State<UsersTab> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+
+            // ── Sort Bar ─────────────────────────────────────────
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.sort, color: Colors.white38, size: 15),
+                  const SizedBox(width: 8),
+                  _sortChip('Newest',       'newest',       Icons.access_time),
+                  const SizedBox(width: 6),
+                  _sortChip('Most Tickets', 'most_tickets', Icons.arrow_downward),
+                  const SizedBox(width: 6),
+                  _sortChip('Least',        'least_tickets', Icons.arrow_upward),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
 
             // ── List ─────────────────────────────────────────────
             Expanded(
@@ -315,7 +354,7 @@ class _UsersTabState extends State<UsersTab> {
           ],
         ),
 
-        // ── FAB: Add Admin (visible only on Admins tab) ──
+        // ── FAB: Add Admin ───────────────────────────────────────
         if (tab == 1)
           Positioned(
             bottom: 16,
@@ -331,14 +370,43 @@ class _UsersTabState extends State<UsersTab> {
     );
   }
 
+  Widget _sortChip(String label, String value, IconData icon) {
+    final active = _sortBy == value;
+    return GestureDetector(
+      onTap: () => setState(() => _sortBy = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary.withOpacity(0.25) : Colors.white.withOpacity(0.04),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: active ? AppColors.primary.withOpacity(0.7) : Colors.white12,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: active ? AppColors.gold : Colors.white30),
+            const SizedBox(width: 5),
+            Text(label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: active ? AppColors.gold : Colors.white38,
+                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _userCard(Map<String, dynamic> u) {
-    final role     = (u['role'] ?? '').toString().toUpperCase();
+    final role      = (u['role'] ?? '').toString().toUpperCase();
     final isBlocked = role == 'BLOCK';
     final isAdmin   = role.contains('ADMIN');
-
-    // ID field: SSN for Egyptians, passport for foreigners
-    final idLabel = u['ssn'] != null ? 'SSN' : 'Passport';
-    final idValue = u['ssn'] ?? u['passportNumber'] ?? '—';
+    final idLabel   = u['ssn'] != null ? 'SSN' : 'Passport';
+    final idValue   = u['ssn'] ?? u['passportNumber'] ?? '—';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -355,7 +423,7 @@ class _UsersTabState extends State<UsersTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header row ──
+          // Header
           Row(
             children: [
               CircleAvatar(
@@ -399,20 +467,20 @@ class _UsersTabState extends State<UsersTab> {
           const Divider(color: Colors.white10, height: 1),
           const SizedBox(height: 10),
 
-          // ── Info grid ──
+          // Info chips
           Wrap(
             spacing: 12,
             runSpacing: 8,
             children: [
-              _infoChip(Icons.phone,        'Phone',       u['phone']       ?? '—'),
-              _infoChip(Icons.flag,         'Nationality', u['nationality'] ?? '—'),
-              _infoChip(Icons.badge,        idLabel,       idValue),
-              _infoChip(Icons.confirmation_number, 'Tickets', '${u['ticketsBooked'] ?? 0}'),
-              _infoChip(Icons.calendar_today, 'Joined',    _formatDate(u['createdAt'])),
+              _infoChip(Icons.phone,               'Phone',       u['phone']       ?? '—'),
+              _infoChip(Icons.flag,                'Nationality', u['nationality'] ?? '—'),
+              _infoChip(Icons.badge,               idLabel,       idValue),
+              _infoChip(Icons.confirmation_number, 'Tickets',     '${u['ticketsBooked'] ?? 0}'),
+              _infoChip(Icons.calendar_today,      'Joined',      _formatDate(u['createdAt'])),
             ],
           ),
 
-          // ── Block button (only for non-admins) ──
+          // Block button
           if (!isAdmin) ...[
             const SizedBox(height: 10),
             Align(
