@@ -47,7 +47,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: const GemAppBar(
-        activePage: 'Admin',),
+        activePage: 'Dashboard',),
       endDrawer: const AppDrawer(),
       body: GemBackground(
         imageAsset: AppAssets.bgMuseum,

@@ -9,6 +9,7 @@ import '../screens/home_screen.dart';
 import '../screens/booking_screen.dart';
 import '../screens/halls_screen.dart';
 import '../screens/signin_screen.dart';
+import '../screens/about_screen.dart';
 
 
 class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -135,21 +136,12 @@ class GemAppBar extends StatelessWidget implements PreferredSizeWidget {
                 () => _go(context, const HallsScreen()),
           ),
 
-            // _navItem(
-            //   context,
-            //   'My Bookings',
-            //   Icons.receipt_long,
-            //   activePage == 'Profile',
-            //       () => Navigator.push(context,
-            //       MaterialPageRoute(builder: (_) => const MyBookingsScreen())),
-            // ),
-
           _navItem(
             context,
             'About',
             Icons.info,
             activePage == 'About',
-                () {},
+                () => _go(context, const AboutScreen()),
           ),
 
           _navItem(

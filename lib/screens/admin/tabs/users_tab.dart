@@ -43,6 +43,12 @@ class _UsersTabState extends State<UsersTab> {
       final all  = await ApiService.getAdminUsers();
       if (!mounted) return;
       final list = List<Map<String, dynamic>>.from(all);
+
+      // DEBUG — طباعة أول 3 users وقيمة ticketsBooked
+      for (var u in list.take(3)) {
+        debugPrint('USER: ${u['fullName']} | ticketsBooked: ${u['ticketsBooked']} (${u['ticketsBooked'].runtimeType})');
+      }
+
       setState(() {
         admins  = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'ADMIN').toList();
         blocked = list.where((u) => (u['role'] ?? '').toString().toUpperCase() == 'BLOCK').toList();
@@ -467,6 +473,36 @@ class _UsersTabState extends State<UsersTab> {
           const Divider(color: Colors.white10, height: 1),
           const SizedBox(height: 10),
 
+          // Block reason
+          if (isBlocked && u['blockReason'] != null && u['blockReason'].toString().isNotEmpty)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.redAccent, size: 15),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Reason: ${u['blockReason']}',
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
           // Info chips
           Wrap(
             spacing: 12,
@@ -475,7 +511,8 @@ class _UsersTabState extends State<UsersTab> {
               _infoChip(Icons.phone,               'Phone',       u['phone']       ?? '—'),
               _infoChip(Icons.flag,                'Nationality', u['nationality'] ?? '—'),
               _infoChip(Icons.badge,               idLabel,       idValue),
-              _infoChip(Icons.confirmation_number, 'Tickets',     '${u['ticketsBooked'] ?? 0}'),
+              if (!isAdmin)
+                _infoChip(Icons.confirmation_number, 'Tickets',     '${u['ticketsBooked'] ?? 0}'),
               _infoChip(Icons.calendar_today,      'Joined',      _formatDate(u['createdAt'])),
             ],
           ),
